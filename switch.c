@@ -162,7 +162,8 @@ void switch_init(void)
 
 void switch_config(unsigned num, uint8_t sw_pin)
 {
-	assert (!state[num].configured);
+	if (state[num].configured)
+		panic("switch_config: switch num=%u already configured", num);
 
 	state[num].configured = true;
 	state[num].sw_pin = sw_pin;
