@@ -56,7 +56,7 @@ static queue_t queue;
  * Alarm handler for `irq_handler_sw`.
  * See below for more information.
  */
-static int64_t __no_inline_not_in_flash_func(debounce)(alarm_id_t id, void *arg)
+static int64_t __no_inline_not_in_flash_func(debounce)(alarm_id_t, void *arg)
 {
 	struct state *st = arg;
 
