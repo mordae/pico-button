@@ -38,8 +38,10 @@
 
 struct state {
 	uint8_t sw_pin;
+#if SWITCH_DEBOUNCE_US > 0
 	uint32_t sw_mtime;
 	alarm_id_t sw_alarm;
+#endif
 	bool sw : 1;
 	bool configured: 1;
 };
@@ -52,6 +54,7 @@ static struct state state[NUM_SWITCHES];
 static queue_t queue;
 
 
+#if SWITCH_DEBOUNCE_US
 /*
  * Alarm handler for `irq_handler_sw`.
  * See below for more information.
@@ -87,6 +90,7 @@ static int64_t __no_inline_not_in_flash_func(debounce)(alarm_id_t, void *arg)
 	(void)queue_try_add(&queue, &event);
 	return 0;
 }
+#endif
 
 
 __isr static void __no_inline_not_in_flash_func(irq_handler_sw)(void)
@@ -112,6 +116,7 @@ __isr static void __no_inline_not_in_flash_func(irq_handler_sw)(void)
 			if (st->sw == sw)
 				continue;
 
+#if SWITCH_DEBOUNCE_US > 0
 			/*
 			 * We might have set up an alarm to combat bounce.
 			 * If we did, we need to cancel it since another
@@ -139,6 +144,7 @@ __isr static void __no_inline_not_in_flash_func(irq_handler_sw)(void)
 
 			/* There was long enough delay, so we trust this value. */
 			st->sw_mtime = now;
+#endif
 			st->sw = sw;
 
 			/* Emit the event. */
@@ -155,7 +161,9 @@ __isr static void __no_inline_not_in_flash_func(irq_handler_sw)(void)
 void switch_init(void)
 {
 	queue_init(&queue, sizeof(struct switch_event), SWITCH_QUEUE_SIZE);
+#if SWITCH_DEBOUNCE_US > 0
 	alarm_pool_init_default();
+#endif
 	irq_set_enabled(IO_IRQ_BANK0, true);
 }
 
